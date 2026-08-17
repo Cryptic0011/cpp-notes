@@ -4,7 +4,7 @@ set -e
 VAULT="$HOME/Grayson/Graysons Vault/Graysons Vault"
 SRC="$VAULT/Things/C++"
 REPO="$(cd "$(dirname "$0")" && pwd)"
-DEST="$REPO/content/notes"
+DEST="$REPO/content/C++"
 
 rm -rf "$DEST"
 mkdir -p "$DEST"
