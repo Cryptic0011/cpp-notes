@@ -44,7 +44,9 @@ jobs:
         run: |
           # ponytail: list changed note names, link the site root - guessing Quartz
           # slugs per note would 404 on any renamed/odd filename.
-          CHANGED=$( { git diff --name-only HEAD^ HEAD -- 'content/C++/*.md' || true; } \
+          # -c core.quotePath=false: otherwise git octal-escapes the em dashes in
+          # note names and wraps the path in quotes ("0.2 \342\200\224 Intro....md")
+          CHANGED=$( { git -c core.quotePath=false diff --name-only HEAD^ HEAD -- 'content/C++/*.md' || true; } \
             | head -10 | sed 's|.*/||; s|\.md$||; s|^|- |')
           [ -z "$CHANGED" ] && CHANGED="_no note files changed_"
           jq -n --arg desc "$CHANGED" --arg url "$SITE" '{
