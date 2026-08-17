@@ -1,0 +1,57 @@
+name: Deploy notes
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # need the parent commit to diff changed notes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx quartz build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Notify Discord
+        if: env.WEBHOOK != ''
+        env:
+          SITE: ${{ steps.deploy.outputs.page_url }}
+        run: |
+          # ponytail: list changed note names, link the site root - guessing Quartz
+          # slugs per note would 404 on any renamed/odd filename.
+          CHANGED=$(git diff --name-only HEAD^ HEAD -- 'content/notes/*.md' \
+            | head -10 | sed 's|.*/||; s|\.md$||; s|^|- |')
+          [ -z "$CHANGED" ] && CHANGED="_no note files changed_"
+          jq -n --arg desc "$CHANGED" --arg url "$SITE" '{
+            embeds: [{
+              title: "C++ notes updated",
+              url: $url,
+              description: $desc,
+              color: 5814783
+            }]
+          }' | curl -sf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK"
