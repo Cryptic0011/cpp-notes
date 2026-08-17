@@ -44,7 +44,7 @@ jobs:
         run: |
           # ponytail: list changed note names, link the site root - guessing Quartz
           # slugs per note would 404 on any renamed/odd filename.
-          CHANGED=$(git diff --name-only HEAD^ HEAD -- 'content/notes/*.md' \
+          CHANGED=$( { git diff --name-only HEAD^ HEAD -- 'content/notes/*.md' || true; } \
             | head -10 | sed 's|.*/||; s|\.md$||; s|^|- |')
           [ -z "$CHANGED" ] && CHANGED="_no note files changed_"
           jq -n --arg desc "$CHANGED" --arg url "$SITE" '{
