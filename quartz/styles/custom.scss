@@ -1,3 +1,16 @@
 @use "./variables.scss" as *;
 
-// put your custom CSS here!
+// ponytail: @quartz-themes/core writes --secondary/--tertiary as hsl(calc(...)).
+// CSS resolves calc() at paint time, but mermaid reads the raw custom property
+// and its color parser throws on calc(), killing mermaid.initialize() before any
+// diagram renders. Same colors, arithmetic done by hand.
+// Change the theme accent and these need recomputing.
+:root {
+  --secondary: #8a5cf5; // hsl(258, 88%, 66%)
+  --tertiary: #a68af9; // was hsl(calc(258 - 3), calc(88% * 1.02), calc(66% * 1.15))
+}
+
+:root[saved-theme="dark"] {
+  --secondary: #a68af9; // was hsl(calc(258 - 3), calc(88% * 1.02), calc(66% * 1.15))
+  --tertiary: #c5b6fc; // was hsl(calc(258 - 5), calc(88% * 1.05), calc(66% * 1.29))
+}
